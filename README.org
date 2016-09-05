@@ -1,0 +1,27 @@
+* MySQL Backup job example
+
+Simple application to demonstrate how to run a job to backup MySQL
+
+Start to deploy with ./deploy.sh (it would cleanup previous instance)
+
+Start backuping with ./backup.sh
+
+** Note :
+
+- The backup script just output to the output, you can do whatever you like with
+  it like putting it to a shared volume or object storage (i.e: s3, swift)
+
+- The Job scheduling in kubernetes doesn't support currently scheduling so you
+  have to resort to to the good ol cron to schedule those tasks to run the
+  backup.sh
+
+- The credentials are currently hardcoded for backup, I was using kube secrets to share
+  those at first but this does not seems to work for the execNewPod/post
+  container which I need to insert some data. I switched to template but that
+  would not work for job as there is no start and stop job kind of thing (so if
+  I create it in template it would automatically started at creation). Feeding
+  this back to the devs
+
+* Contact
+
+Chmouel Boudjnah <chmouel@redhat.com>

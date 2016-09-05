@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Job
+metadata:
+  name: backup
+spec:
+  selector:
+    matchLabels:
+      name: backup
+  parallelism: 1
+  completions: 1
+  activeDeadlineSeconds: 100
+  template:
+    metadata:
+      name: backup
+      labels:
+        name: backup
+    spec:
+      containers:
+      - name: backup
+        image: openshift3/mysql-55-rhel7
+        command:
+          - /bin/bash
+          - -c
+          - mysqldump --opt -hmysql -u"username" -p"password" "database"
+      restartPolicy: Never

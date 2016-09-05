@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: mysql-chmouel
+objects:
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        template: mysql-ephemeral-template
+      name: mysql
+      namespace: test
+    spec:
+      replicas: 1
+      selector:
+        name: mysql
+      strategy:
+        recreateParams:
+          post:
+            execNewPod:
+              command:
+              - /bin/bash
+              - -c
+              - mysql -hmysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D"$MYSQL_DATABASE" -e
+                'CREATE TABLE rand_numbers(number INT);
+                 INSERT INTO rand_numbers ( number ) VALUES ( rand() * 3333 )'
+              env:
+                - name: MYSQL_USER
+                  value: ${DATABASE_USER}
+                - name: MYSQL_PASSWORD
+                  value: ${DATABASE_PASSWORD}
+                - name: MYSQL_DATABASE
+                  value: ${DATABASE_NAME}
+            failurePolicy: Retry
+            timeoutSeconds: 600
+        type: Recreate
+        resources: {}
+      template:
+        metadata:
+          labels:
+            name: mysql
+        spec:
+          containers:
+          - env:
+            - name: MYSQL_USER
+              value: ${DATABASE_USER}
+            - name: MYSQL_PASSWORD
+              value: ${DATABASE_PASSWORD}
+            - name: MYSQL_DATABASE
+              value: ${DATABASE_NAME}
+            image: openshift3/mysql-55-rhel7
+            imagePullPolicy: IfNotPresent
+            livenessProbe:
+              failureThreshold: 3
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              successThreshold: 1
+              tcpSocket:
+                port: 3306
+              timeoutSeconds: 1
+            name: mysql
+            ports:
+            - containerPort: 3306
+              protocol: TCP
+            readinessProbe:
+              exec:
+                command:
+                - /bin/sh
+                - -i
+                - -c
+                - MYSQL_PWD="$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE
+                  -e 'SELECT 1'
+              failureThreshold: 3
+              initialDelaySeconds: 5
+              periodSeconds: 10
+              successThreshold: 1
+              timeoutSeconds: 1
+            resources:
+              limits:
+                memory: 512Mi
+            securityContext:
+              capabilities: {}
+              privileged: false
+            terminationMessagePath: /dev/termination-log
+            volumeMounts:
+            - mountPath: /var/lib/mysql/data
+              name: mysql-data
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - emptyDir: {}
+            name: mysql-data
+      test: false
+      triggers:
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+          - mysql
+          from:
+            kind: ImageStreamTag
+            name: mysql:5.6
+            namespace: openshift
+        type: ImageChange
+      - type: ConfigChange
+    status:
+      availableReplicas: 1
+      latestVersion: 1
+      observedGeneration: 3
+      replicas: 1
+      updatedReplicas: 1
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: mysql
+    spec:
+      ports:
+      - name: mysql
+        port: 3306
+        protocol: TCP
+        targetPort: 3306
+      selector:
+        name: mysql
+      sessionAffinity: None
+      type: ClusterIP
+parameters:
+- displayName: Database Name
+  name: DATABASE_NAME
+  required: true
+  value: database
+- displayName: Database User
+  name: DATABASE_USER
+  required: true
+  value: user
+- displayName: Database Password
+  from: '[a-zA-Z0-9]{16}'
+  generate: expression
+  name: DATABASE_PASSWORD
+  value: password

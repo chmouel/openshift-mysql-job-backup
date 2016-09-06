@@ -1,0 +1,42 @@
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: mysql-backup
+spec:
+  template:
+    metadata:
+      labels:
+        name: mysql-backup
+    spec:
+      containers:
+        - name: mysql-backup
+          image: openshift3/mysql-55-rhel7
+          imagePullPolicy: IfNotPresent
+          restartPolicy: Never
+          dnsPolicy: ClusterFirst
+          command:
+            - /bin/bash
+            - -c
+            - mysqldump --opt -hmysql -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" ${MYSQL_DATABASE}
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-access
+                  key: user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-access
+                  key: password
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-access
+                  key: database
+
+  replicas: 0
+  selector:
+    name: mysql-backup
+  triggers:
+    - type: ConfigChange

@@ -28,6 +28,14 @@ Start backuping with ./backup.sh
   well at least jobs does not need to have hardcoded value and can use the
   configmaps parameters.
 
+- I have moreover experienced with a backup deployment-config in dc-backup.yaml,
+  by default it would have a replicas of 0 (so not started) /restartPolicy:
+  Never/ so it would not restart the container everytime it exits. You would use
+  it like this when doing the backup you do: oc scale --replicas=1
+  dc/mysql-backup and when backup is over you scale it back to 0. Things is
+  looking good it just finished the job as a "CrashLoopBackOff" since it existed
+  instead of a completed status like for the job.
+
 * Contact
 
 Chmouel Boudjnah <chmouel@redhat.com>

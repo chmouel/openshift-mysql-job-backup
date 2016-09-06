@@ -1,7 +1,7 @@
 #!/bin/bash
 oc delete job backup
 
-oc create -f job.yaml
+oc create -f job-backup.yaml
 
 i=0
 while [[ $i != 10 ]];do

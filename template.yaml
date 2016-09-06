@@ -24,6 +24,8 @@ objects:
               - mysql -hmysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D"$MYSQL_DATABASE" -e
                 'CREATE TABLE rand_numbers(number INT);
                  INSERT INTO rand_numbers ( number ) VALUES ( rand() * 3333 )'
+              # This is annoying, we use template expansion and not configmap
+              # here, cause it does not seem to work
               env:
                 - name: MYSQL_USER
                   value: ${DATABASE_USER}
@@ -43,11 +45,20 @@ objects:
           containers:
           - env:
             - name: MYSQL_USER
-              value: ${DATABASE_USER}
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-access
+                  key: user
             - name: MYSQL_PASSWORD
-              value: ${DATABASE_PASSWORD}
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-access
+                  key: password
             - name: MYSQL_DATABASE
-              value: ${DATABASE_NAME}
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-access
+                  key: database
             image: openshift3/mysql-55-rhel7
             imagePullPolicy: IfNotPresent
             livenessProbe:
@@ -124,6 +135,17 @@ objects:
         name: mysql
       sessionAffinity: None
       type: ClusterIP
+  # Storing user access form the templates parameters in a configmap to use
+  # after, ideally this should be a secret but there is no way to baseencore
+  # directly.
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: mysql-access
+    data:
+      user: ${DATABASE_USER}
+      password: ${DATABASE_PASSWORD}
+      database: ${DATABASE_NAME}
 parameters:
 - displayName: Database Name
   name: DATABASE_NAME

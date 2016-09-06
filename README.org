@@ -11,16 +11,17 @@ Start backuping with ./backup.sh
 - The backup script just output to the output, you can do whatever you like with
   it like putting it to a shared volume or object storage (i.e: s3, swift)
 
-- The Job scheduling in kubernetes doesn't support currently scheduling so you
+- The Job definition in kubernetes doesn't support currently (planned in 1.4) scheduling so you
   have to resort to to the good ol cron to schedule those tasks to run the
-  backup.sh
+  */backup.sh/*
 
-- The credentials are currently hardcoded for backup, I was using kube secrets to share
-  those at first but this does not seems to work for the execNewPod/post
-  container which I need to insert some data. I switched to template but that
-  would not work for job as there is no start and stop job kind of thing (so if
-  I create it in template it would automatically started at creation). Feeding
-  this back to the devs
+- I do some fancy things with configmaps to store variables provided by the
+  templates parameters and get used after to the containers and jobs. Ideally
+  this should have been a secrets but there is no way to encore in base64 in a
+  template. Moreover the execNewPod post action script doesn't use the configmap but
+  the template parameters directly cause this does not seem to work there. Oh
+  well at least jobs does not need to have hardcoded value and can use the
+  configmaps parameters.
 
 * Contact
 

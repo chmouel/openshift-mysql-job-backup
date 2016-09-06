@@ -21,5 +21,21 @@ spec:
         command:
           - /bin/bash
           - -c
-          - mysqldump --opt -hmysql -u"username" -p"password" "database"
+          - mysqldump --opt -hmysql -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" ${MYSQL_DATABASE}
+        env:
+          - name: MYSQL_USER
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-access
+                key: user
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-access
+                key: password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-access
+                key: database
       restartPolicy: Never

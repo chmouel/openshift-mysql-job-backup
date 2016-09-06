@@ -4,7 +4,7 @@ MYSQL_DATABASE=database
 
 set -e
 
-oc delete all --all
+for i in configmaps all;do oc delete ${i} --all;done
 
 oc process -f template.yaml DATABASE_NAME=$MYSQL_DATABASE \
    DATABASE_PASSWORD=$MYSQL_PASSWORD \

@@ -1,5 +1,5 @@
 #!/bin/bash
-oc delete jobs --all
+oc delete job backup
 
 oc create -f job.yaml
 

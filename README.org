@@ -15,6 +15,11 @@ Start backuping with ./backup.sh
   have to resort to to the good ol cron to schedule those tasks to run the
   */backup.sh/*
 
+- Job currently is not that great at the moment, there is no way to 'reckick' a
+  job, the only way to rekick a backup is to /oc delete/ the old job and create
+  the template again (which sis what the backup.sh does). I wish there was a way
+  to just restart job again instead of pruning recreating.
+
 - I do some fancy things with configmaps to store variables provided by the
   templates parameters and get used after to the containers and jobs. Ideally
   this should have been a secrets but there is no way to encore in base64 in a
